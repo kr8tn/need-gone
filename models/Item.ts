@@ -11,5 +11,5 @@ export type Item = {
   city: string;
   pickupWindow: string;
 
-  status: "available" | "pending" | "claimed";
+  status: "Available" | "Pending" | "Claimed";
 };

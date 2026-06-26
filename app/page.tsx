@@ -9,7 +9,7 @@ const items: Item[] = [
     description: "Works great. No remote. Bring two people to carry.",
     city: "Ignacio",
     pickupWindow: "Today after 5 PM",
-    status: "available",
+    status: "Available",
     imageUrls: ['/images/tv.jpg'],
 
   },
@@ -20,7 +20,7 @@ const items: Item[] = [
     description: "Solid wood bookshelf. Heavy but in good shape.",
     city: "Durango",
     pickupWindow: "Saturday morning",
-    status: "pending",
+    status: "Pending",
     imageUrls: ['/images/tv.jpg'],
   },
   {
@@ -30,7 +30,7 @@ const items: Item[] = [
     description: "Needs new tires but frame is good.",
     city: "Bayfield",
     pickupWindow: "This weekend",
-    status: "claimed",
+    status: "Claimed",
     imageUrls: ['/images/tv.jpg'],
   },
 ];

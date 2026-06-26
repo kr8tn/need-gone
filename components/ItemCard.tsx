@@ -8,14 +8,21 @@ type ItemCardProps = {
 
 export default function ItemCard({ item }: ItemCardProps) {
   
-  let buttonText = "Request Pickup";
 
-if (item.status === "pending") {
-  buttonText = "Pickup Pending";
+
+let buttonText = "Request Pickup";
+let buttonDisabled = false;
+let statusBadgeClassName = "rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700";
+
+if (item.status === "Pending") {
+  buttonText = "Join Backup Queue";
+  statusBadgeClassName = "rounded-full bg-yellow-100 px-3 py-1 text-sm font-semibold text-yellow-700";
 }
 
-if (item.status === "claimed") {
+if (item.status === "Claimed") {
   buttonText = "Gone";
+  buttonDisabled = true;
+  statusBadgeClassName = "rounded-full bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-700";
 }
   
   return (
@@ -38,7 +45,7 @@ if (item.status === "claimed") {
           <p className="mt-2 text-slate-600">{item.description}</p>
         </div>
 
-        <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
+        <span className={statusBadgeClassName}>
           {item.status}
         </span>
       </div>
@@ -48,8 +55,10 @@ if (item.status === "claimed") {
         <p>⏰ {item.pickupWindow}</p>
       </div>
 
-      <button className="mt-5 w-full rounded-xl bg-slate-900 px-4 py-3 font-bold text-white hover:bg-slate-700">
-        {buttonText}
+      <button
+          disabled={buttonDisabled}
+          className="mt-5 w-full rounded-xl bg-slate-900 px-4 py-3 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400">
+          {buttonText}
       </button>
     </article>
   );
