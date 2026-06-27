@@ -1,4 +1,6 @@
 
+export type ItemStatus = "AVAILABLE" | "PENDING" | "GONE";
+
 export type Item = {
   id: number;
   userId: number;
@@ -11,5 +13,5 @@ export type Item = {
   city: string;
   pickupWindow: string;
 
-  status: "Available" | "Pending" | "Claimed";
+  status: ItemStatus;
 };

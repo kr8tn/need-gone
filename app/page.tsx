@@ -1,6 +1,7 @@
 import ItemCard from "@/components/ItemCard";
 import { items } from "@/data/items";
 import Link from "next/link";
+import AuthButton from "@/components/Authbutton";
 
 export default function Home() {
   return (
@@ -23,6 +24,7 @@ export default function Home() {
           >
             + Create Listing
           </Link>
+          <AuthButton />
         </div>
 
         <div className="mb-10">

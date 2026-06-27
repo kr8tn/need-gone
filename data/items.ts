@@ -20,7 +20,7 @@ export const items: Item[] = [
     city: "Durango",
     pickupWindow: "Saturday morning",
     status: "PENDING",
-    imageUrls: ['/images/tv.jpg'],
+    imageUrls: ['/images/wood.jpg'],
   },
   {
     id: 3,
@@ -30,7 +30,7 @@ export const items: Item[] = [
     city: "Bayfield",
     pickupWindow: "This weekend",
     status: "GONE",
-    imageUrls: ['/images/tv.jpg'],
+    imageUrls: ['/images/kidsbike.jpg'],
   },
   {
     id: 4,
