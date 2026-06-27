@@ -1,9 +1,14 @@
 import ItemCard from "@/components/ItemCard";
-import { items } from "@/data/items";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import AuthButton from "@/components/Authbutton";
 
-export default function Home() {
+export default async function Home() {
+  const { data: items } = await supabase
+  .from("items")
+  .select("*")
+  .order("created_at", { ascending: false });
+
   return (
     <main className="min-h-screen bg-slate-100 px-6 py-10">
       <section className="mx-auto max-w-6xl">
@@ -41,15 +46,15 @@ export default function Home() {
               Recent Listings
             </h2>
             <p className="mt-1 text-slate-600">
-              {items.length} items currently available nearby
+              {items?.length ?? 0} items currently available nearby
             </p>
           </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
-            <ItemCard key={item.id} item={item} />
-          ))}
+          {items?.map((item) => (
+  <ItemCard key={item.id} item={item} />
+))}
         </div>
       </section>
     </main>

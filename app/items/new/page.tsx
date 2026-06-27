@@ -1,51 +1,80 @@
+"use client";
+
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+
 export default function NewItemPage() {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [message, setMessage] = useState("");
+
+  async function createItem(event: React.FormEvent) {
+    event.preventDefault();
+
+    const { data: userData } = await supabase.auth.getUser();
+
+    if (!userData.user) {
+      setMessage("You must be signed in to create a listing.");
+      return;
+    }
+
+    const { error } = await supabase.from("items").insert({
+      title,
+      description,
+      location,
+      owner_id: userData.user.id,
+      status: "AVAILABLE",
+    });
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setMessage("Listing created!");
+    setTitle("");
+    setDescription("");
+    setLocation("");
+  }
+
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-10">
-      <div className="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-sm">
-        <h1 className="text-3xl font-bold text-slate-900">Create Listing</h1>
-        <p className="mt-2 text-slate-600">
-          Post something you need gone.
-        </p>
+    <main className="min-h-screen bg-slate-100 px-6 py-10">
+      <section className="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-sm">
+        <h1 className="text-4xl font-black text-slate-900">Create Listing</h1>
 
-        <form className="mt-8 space-y-5">
-          <div>
-            <label className="block font-semibold text-slate-700">Title</label>
-            <input
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3"
-              placeholder="Free couch, old desk, scrap wood..."
-            />
-          </div>
+        <form onSubmit={createItem} className="mt-8 space-y-5">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Item title"
+            className="w-full rounded-xl border border-slate-300 px-4 py-3"
+            required
+          />
 
-          <div>
-            <label className="block font-semibold text-slate-700">Description</label>
-            <textarea
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3"
-              rows={5}
-              placeholder="Condition, pickup notes, anything important..."
-            />
-          </div>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe the item"
+            className="h-32 w-full rounded-xl border border-slate-300 px-4 py-3"
+            required
+          />
 
-          <div>
-            <label className="block font-semibold text-slate-700">City</label>
-            <input
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3"
-              placeholder="Ignacio"
-            />
-          </div>
+          <input
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="Pickup location"
+            className="w-full rounded-xl border border-slate-300 px-4 py-3"
+            required
+          />
 
-          <div>
-            <label className="block font-semibold text-slate-700">Pickup Window</label>
-            <input
-              className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3"
-              placeholder="Today after 5 PM"
-            />
-          </div>
-
-          <button className="w-full rounded-xl bg-slate-900 px-4 py-3 font-bold text-white hover:bg-slate-700">
+          <button className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-700">
             Create Listing
           </button>
         </form>
-      </div>
+
+        {message && <p className="mt-5 font-semibold text-slate-700">{message}</p>}
+      </section>
     </main>
   );
 }

@@ -39,7 +39,7 @@ const statusConfig = {
         </span>
 
         <img
-          src={item.imageUrls[0]}
+          src={item.imageUrls?.[0] ?? "/images/tv.jpg"}
           alt={item.title}
           className="h-full w-full object-cover"
         />
