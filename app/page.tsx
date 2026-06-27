@@ -1,57 +1,48 @@
 import ItemCard from "@/components/ItemCard";
-import type { Item } from "@/models/Item";
-
-const items: Item[] = [
-  {
-    id: 1,
-    userId: 1,
-    title: "Free 55 inch TV",
-    description: "Works great. No remote. Bring two people to carry.",
-    city: "Ignacio",
-    pickupWindow: "Today after 5 PM",
-    status: "AVAILABLE",
-    imageUrls: ['/images/tv.jpg'],
-
-  },
-  {
-    id: 2,
-    userId: 2,
-    title: "Wood Bookshelf",
-    description: "Solid wood bookshelf. Heavy but in good shape.",
-    city: "Durango",
-    pickupWindow: "Saturday morning",
-    status: "PENDING",
-    imageUrls: ['/images/tv.jpg'],
-  },
-  {
-    id: 3,
-    userId: 3,
-    title: "Kids Bicycle",
-    description: "Needs new tires but frame is good.",
-    city: "Bayfield",
-    pickupWindow: "This weekend",
-    status: "GONE",
-    imageUrls: ['/images/tv.jpg'],
-  },
-];
+import { items } from "@/data/items";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-slate-100 px-6 py-10">
-      <section className="mx-auto max-w-5xl">
-        <header className="mb-10">
-          <p className="text-sm font-bold uppercase tracking-wide text-slate-500">
-            Crayton Labs · Project #001
-          </p>
-
-          <h1 className="mt-2 text-5xl font-black text-slate-950">
+      <section className="mx-auto max-w-6xl">
+        <div className="mb-12 text-center">
+          <h1 className="text-6xl font-black tracking-tight text-slate-900">
             Need Gone
           </h1>
 
-          <p className="mt-4 max-w-2xl text-xl text-slate-600">
-            A better way to give away useful stuff locally without Marketplace chaos.
+          <p className="mx-auto mt-5 max-w-2xl text-xl leading-8 text-slate-600">
+            Post it. Someone picks it up. It’s gone.
+            <br />
+            A simple way to give away useful stuff locally.
           </p>
-        </header>
+
+          <Link
+            href="/items/new"
+            className="mt-8 inline-block rounded-xl bg-slate-900 px-8 py-4 text-lg font-bold text-white hover:bg-slate-700"
+          >
+            + Create Listing
+          </Link>
+        </div>
+
+        <div className="mb-10">
+          <input
+            type="text"
+            placeholder="Search free items..."
+            className="w-full rounded-xl border border-slate-300 bg-white px-5 py-4 text-lg shadow-sm focus:border-slate-900 focus:outline-none"
+          />
+        </div>
+
+        <div className="mb-6 flex items-end justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">
+              Recent Listings
+            </h2>
+            <p className="mt-1 text-slate-600">
+              {items.length} items currently available nearby
+            </p>
+          </div>
+        </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (

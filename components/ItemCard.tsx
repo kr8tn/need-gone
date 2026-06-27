@@ -1,4 +1,5 @@
 import type { Item } from "@/models/Item";
+import Link from "next/link";
 
 type ItemCardProps = {
   item: Item;
@@ -58,12 +59,18 @@ const statusConfig = {
         <p>⏰ {item.pickupWindow}</p>
       </div>
 
-      <button
-        disabled={buttonDisabled}
-        className="mt-5 w-full rounded-xl bg-slate-900 px-4 py-3 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
-      >
-        {buttonText}
-      </button>
+     <button
+  disabled={buttonDisabled}
+  className="mt-5 w-full rounded-xl bg-slate-900 px-4 py-3 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+>
+  {buttonText}
+</button>
+<Link
+  href={`/items/${item.id}`}
+  className="mt-3 block text-center text-sm font-semibold text-slate-600 hover:text-slate-900"
+>
+  View Details →
+</Link>
     </article>
   );
 }
