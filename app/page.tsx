@@ -30,6 +30,7 @@ export default async function Home() {
             + Create Listing
           </Link>
           <AuthButton />
+          <Link href="/my-listings">My Listings</Link>
         </div>
 
         <div className="mb-10">

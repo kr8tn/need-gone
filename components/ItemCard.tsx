@@ -38,11 +38,15 @@ const statusConfig = {
           FREE
         </span>
 
-        <img
-          src={item.imageUrls?.[0] ?? "/images/tv.jpg"}
-          alt={item.title}
-          className="h-full w-full object-cover"
-        />
+        {item.image_url ? (
+  <img
+    src={item.image_url}
+    alt={item.title}
+    className="mb-4 h-48 w-full rounded-xl object-cover"
+  />
+) : (
+  <div className="mb-4 h-48 rounded-xl bg-slate-200" />
+)}
       </div>
 
       <div className="flex items-start justify-between gap-4">
@@ -65,12 +69,7 @@ const statusConfig = {
 >
   {buttonText}
 </button>
-<Link
-  href={`/items/${item.id}`}
-  className="mt-3 block text-center text-sm font-semibold text-slate-600 hover:text-slate-900"
->
-  View Details →
-</Link>
+<Link href={`/items/${item.id}`}>View Details →</Link>
     </article>
   );
 }

@@ -8,7 +8,7 @@ export type Item = {
   title: string;
   description: string;
 
-  imageUrls: string[];
+  image_url: string | null;
 
   city: string;
   pickupWindow: string;
