@@ -58,10 +58,23 @@ const statusConfig = {
         <span className={statusBadgeClassName}>{item.status}</span>
       </div>
 
-      <div className="mt-4 space-y-1 text-slate-600">
-        <p>📍 {item.city}</p>
-        <p>⏰ {item.pickupWindow}</p>
-      </div>
+   <div className="mt-4 space-y-1 text-sm text-slate-600">
+  <p>
+    📍 {item.public_location || item.location}
+  </p>
+
+  {item.pickup_type === "PORCH" && (
+    <p>
+      🏡 {item.pickup_window || "Pickup window not set"}
+    </p>
+  )}
+
+  {item.pickup_type === "PUBLIC_MEETUP" && (
+    <p>
+      🤝 Public meetup
+    </p>
+  )}
+</div>
 
      <button
   disabled={buttonDisabled}

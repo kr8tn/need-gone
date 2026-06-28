@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function NewItemPage() {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -16,9 +19,13 @@ export default function NewItemPage() {
   const [pickupWindow, setPickupWindow] = useState("");
   const [meetupLocation, setMeetupLocation] = useState("");
   const [meetupTimeOptions, setMeetupTimeOptions] = useState("");
+  const [createdItemId, setCreatedItemId] = useState<string | null>(null);
 
   async function createItem(event: React.FormEvent) {
     event.preventDefault();
+
+    setMessage("");
+    setCreatedItemId(null);
 
     const { data: userData } = await supabase.auth.getUser();
 
@@ -26,67 +33,93 @@ export default function NewItemPage() {
       setMessage("You must be signed in to create a listing.");
       return;
     }
-let imageUrl = null;
 
-if (imageFile) {
-  const filePath = `${userData.user.id}/${Date.now()}-${imageFile.name}`;
+    let imageUrl: string | null = null;
 
-  const { error: uploadError } = await supabase.storage
-    .from("item-images")
-    .upload(filePath, imageFile);
+    if (imageFile) {
+      const filePath = `${userData.user.id}/${Date.now()}-${imageFile.name}`;
 
-  if (uploadError) {
-    setMessage(uploadError.message);
-    return;
-  }
+      const { error: uploadError } = await supabase.storage
+        .from("item-images")
+        .upload(filePath, imageFile);
 
-  const { data } = supabase.storage
-    .from("item-images")
-    .getPublicUrl(filePath);
+      if (uploadError) {
+        setMessage(uploadError.message);
+        return;
+      }
 
-  imageUrl = data.publicUrl;
-}
-    const { error } = await supabase.from("items").insert({
-      title,
-      description,
-      location,
-      owner_id: userData.user.id,
-      status: "AVAILABLE",
-      image_url: imageUrl,
+      const { data } = supabase.storage
+        .from("item-images")
+        .getPublicUrl(filePath);
 
-       pickup_type: pickupType,
-      public_location: publicLocation,
-      private_address: pickupType === "PORCH" ? privateAddress : null,
-      pickup_instructions: pickupType === "PORCH" ? pickupInstructions : null,
-      pickup_window: pickupType === "PORCH" ? pickupWindow : null,
+      imageUrl = data.publicUrl;
+    }
 
-      meetup_location:
-        pickupType === "PUBLIC_MEETUP" ? meetupLocation : null,
+    const { data: newItem, error } = await supabase
+      .from("items")
+      .insert({
+        title,
+        description,
+        location,
+        owner_id: userData.user.id,
+        status: "AVAILABLE",
+        image_url: imageUrl,
 
-      meetup_time_options:
-        pickupType === "PUBLIC_MEETUP"
-          ? meetupTimeOptions
-              .split("\n")
-              .map((time) => time.trim())
-              .filter(Boolean)
-          : null,
-    });
+        pickup_type: pickupType,
+        public_location: publicLocation,
+        private_address: pickupType === "PORCH" ? privateAddress : null,
+        pickup_instructions:
+          pickupType === "PORCH" ? pickupInstructions : null,
+        pickup_window: pickupType === "PORCH" ? pickupWindow : null,
+        meetup_location:
+          pickupType === "PUBLIC_MEETUP" ? meetupLocation : null,
+        meetup_time_options:
+          pickupType === "PUBLIC_MEETUP"
+            ? meetupTimeOptions
+                .split("\n")
+                .map((time) => time.trim())
+                .filter(Boolean)
+            : null,
+      })
+      .select("id")
+      .single();
 
-    if (error) {
-      setMessage(error.message);
+    if (error || !newItem) {
+      setMessage(error?.message ?? "Something went wrong creating the listing.");
       return;
     }
 
-    setMessage("Listing created!");
+    setCreatedItemId(newItem.id);
+    setMessage("Listing is live!");
+
     setTitle("");
     setDescription("");
     setLocation("");
+    setImageFile(null);
+    setPublicLocation("");
+    setPrivateAddress("");
+    setPickupInstructions("");
+    setPickupWindow("");
+    setMeetupLocation("");
+    setMeetupTimeOptions("");
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   }
 
   return (
     <main className="min-h-screen bg-slate-100 px-6 py-10">
       <section className="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-sm">
-        <h1 className="text-4xl font-black text-slate-900">Create Listing</h1>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-4xl font-black text-slate-900">
+            Create Listing
+          </h1>
+
+          <Link href="/" className="font-semibold text-slate-600 hover:text-slate-900">
+            ← Back home
+          </Link>
+        </div>
 
         <form onSubmit={createItem} className="mt-8 space-y-5">
           <input
@@ -108,115 +141,161 @@ if (imageFile) {
           <input
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder="Pickup location"
+            placeholder="General location, e.g. Ignacio"
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
             required
           />
+
           <input
+            ref={fileInputRef}
             type="file"
             accept="image/*"
             onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
           />
+
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-  <h2 className="text-xl font-bold text-slate-900">Pickup Setup</h2>
-  <p className="mt-1 text-sm text-slate-600">
-    Set the pickup rules up front so you do not have to message back and forth.
-  </p>
+            <h2 className="text-xl font-bold text-slate-900">Pickup Setup</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Set the pickup rules up front so you do not have to message back and forth.
+            </p>
 
-  <div className="mt-4 grid gap-3">
-    <label className="flex items-center gap-3 rounded-xl bg-white p-4">
-      <input
-        type="radio"
-        name="pickupType"
-        value="PORCH"
-        checked={pickupType === "PORCH"}
-        onChange={(e) => setPickupType(e.target.value)}
-      />
-      <span>
-        <strong>Porch Pickup</strong>
-        <br />
-        <span className="text-sm text-slate-600">
-          Approved person gets the address and instructions.
-        </span>
-      </span>
-    </label>
+            <div className="mt-4 grid gap-3">
+              <label className="flex items-center gap-3 rounded-xl bg-white p-4">
+                <input
+                  type="radio"
+                  name="pickupType"
+                  value="PORCH"
+                  checked={pickupType === "PORCH"}
+                  onChange={(e) => setPickupType(e.target.value)}
+                />
+                <span>
+                  <strong>Porch Pickup</strong>
+                  <br />
+                  <span className="text-sm text-slate-600">
+                    Approved person gets the address and instructions.
+                  </span>
+                </span>
+              </label>
 
-    <label className="flex items-center gap-3 rounded-xl bg-white p-4">
-      <input
-        type="radio"
-        name="pickupType"
-        value="PUBLIC_MEETUP"
-        checked={pickupType === "PUBLIC_MEETUP"}
-        onChange={(e) => setPickupType(e.target.value)}
-      />
-      <span>
-        <strong>Public Meetup</strong>
-        <br />
-        <span className="text-sm text-slate-600">
-          Meet at a public place with preset time options.
-        </span>
-      </span>
-    </label>
-  </div>
+              <label className="flex items-center gap-3 rounded-xl bg-white p-4">
+                <input
+                  type="radio"
+                  name="pickupType"
+                  value="PUBLIC_MEETUP"
+                  checked={pickupType === "PUBLIC_MEETUP"}
+                  onChange={(e) => setPickupType(e.target.value)}
+                />
+                <span>
+                  <strong>Public Meetup</strong>
+                  <br />
+                  <span className="text-sm text-slate-600">
+                    Meet at a public place with preset time options.
+                  </span>
+                </span>
+              </label>
+            </div>
 
-  <input
-    value={publicLocation}
-    onChange={(e) => setPublicLocation(e.target.value)}
-    placeholder="Public location shown on listing, e.g. Ignacio, CO"
-    className="mt-4 w-full rounded-xl border border-slate-300 px-4 py-3"
-    required
-  />
+            <input
+              value={publicLocation}
+              onChange={(e) => setPublicLocation(e.target.value)}
+              placeholder="Public location shown on listing, e.g. Ignacio, CO"
+              className="mt-4 w-full rounded-xl border border-slate-300 px-4 py-3"
+              required
+            />
 
-  {pickupType === "PORCH" && (
-    <div className="mt-4 space-y-4">
-      <input
-        value={privateAddress}
-        onChange={(e) => setPrivateAddress(e.target.value)}
-        placeholder="Private pickup address, only shown after approval"
-        className="w-full rounded-xl border border-slate-300 px-4 py-3"
-      />
+            {pickupType === "PORCH" && (
+              <div className="mt-4 space-y-4">
+                <input
+                  value={privateAddress}
+                  onChange={(e) => setPrivateAddress(e.target.value)}
+                  placeholder="Private pickup address, only shown after approval"
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3"
+                />
 
-      <input
-        value={pickupWindow}
-        onChange={(e) => setPickupWindow(e.target.value)}
-        placeholder="Pickup window, e.g. Today 4 PM - 8 PM"
-        className="w-full rounded-xl border border-slate-300 px-4 py-3"
-      />
+                <input
+                  value={pickupWindow}
+                  onChange={(e) => setPickupWindow(e.target.value)}
+                  placeholder="Pickup window, e.g. Today 4 PM - 8 PM"
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3"
+                />
 
-      <textarea
-        value={pickupInstructions}
-        onChange={(e) => setPickupInstructions(e.target.value)}
-        placeholder="Pickup instructions, e.g. On porch by blue chair"
-        className="h-24 w-full rounded-xl border border-slate-300 px-4 py-3"
-      />
-    </div>
-  )}
+                <textarea
+                  value={pickupInstructions}
+                  onChange={(e) => setPickupInstructions(e.target.value)}
+                  placeholder="Pickup instructions, e.g. On porch by blue chair"
+                  className="h-24 w-full rounded-xl border border-slate-300 px-4 py-3"
+                />
+              </div>
+            )}
 
-  {pickupType === "PUBLIC_MEETUP" && (
-    <div className="mt-4 space-y-4">
-      <input
-        value={meetupLocation}
-        onChange={(e) => setMeetupLocation(e.target.value)}
-        placeholder="Meetup location, e.g. Ignacio Library parking lot"
-        className="w-full rounded-xl border border-slate-300 px-4 py-3"
-      />
+            {pickupType === "PUBLIC_MEETUP" && (
+              <div className="mt-4 space-y-4">
+                <input
+                  value={meetupLocation}
+                  onChange={(e) => setMeetupLocation(e.target.value)}
+                  placeholder="Meetup location, e.g. Ignacio Library parking lot"
+                  className="w-full rounded-xl border border-slate-300 px-4 py-3"
+                />
 
-      <textarea
-        value={meetupTimeOptions}
-        onChange={(e) => setMeetupTimeOptions(e.target.value)}
-        placeholder={"Time options, one per line\nToday 5:30 PM\nTomorrow 12:00 PM\nTomorrow 6:00 PM"}
-        className="h-32 w-full rounded-xl border border-slate-300 px-4 py-3"
-      />
-    </div>
-  )}
-</div>
+                <textarea
+                  value={meetupTimeOptions}
+                  onChange={(e) => setMeetupTimeOptions(e.target.value)}
+                  placeholder={
+                    "Time options, one per line\nToday 5:30 PM\nTomorrow 12:00 PM\nTomorrow 6:00 PM"
+                  }
+                  className="h-32 w-full rounded-xl border border-slate-300 px-4 py-3"
+                />
+              </div>
+            )}
+          </div>
+
           <button className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-700">
             Create Listing
           </button>
         </form>
 
-        {message && <p className="mt-5 font-semibold text-slate-700">{message}</p>}
+        {message && (
+          <p className="mt-5 font-semibold text-slate-700">{message}</p>
+        )}
+
+        {createdItemId && (
+          <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-5">
+            <h2 className="text-xl font-bold text-green-800">
+              Listing is live!
+            </h2>
+            <p className="mt-2 text-green-700">
+              Your item has been posted and people can now request pickup.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                href={`/items/${createdItemId}`}
+                className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white"
+              >
+                View Listing
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setCreatedItemId(null);
+                  setMessage("");
+                }}
+                className="rounded-xl border border-slate-300 px-5 py-3 font-semibold text-slate-700"
+              >
+                Create Another
+              </button>
+
+              <Link
+                href="/"
+                className="rounded-xl border border-slate-300 px-5 py-3 font-semibold text-slate-700"
+              >
+                Back Home
+              </Link>
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );
