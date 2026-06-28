@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import RequestPickupButton from "@/components/RequestPickupButton";
 
 type ItemDetailsPageProps = {
   params: Promise<{
@@ -104,9 +105,7 @@ export default async function ItemDetailsPage({ params }: ItemDetailsPageProps) 
     </>
   )}
 </div>
-        <button className="mt-8 w-full rounded-xl bg-slate-900 px-5 py-4 text-lg font-bold text-white hover:bg-slate-700">
-          Request Pickup
-        </button>
+        <RequestPickupButton item={item} />
       </section>
     </main>
   );

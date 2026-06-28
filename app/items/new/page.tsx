@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import PickupWindowSelector from "@/components/pickupWindowSelector";
 
 export default function NewItemPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -16,10 +17,20 @@ export default function NewItemPage() {
   const [publicLocation, setPublicLocation] = useState("");
   const [privateAddress, setPrivateAddress] = useState("");
   const [pickupInstructions, setPickupInstructions] = useState("");
-  const [pickupWindow, setPickupWindow] = useState("");
   const [meetupLocation, setMeetupLocation] = useState("");
-  const [meetupTimeOptions, setMeetupTimeOptions] = useState("");
   const [createdItemId, setCreatedItemId] = useState<string | null>(null);
+
+  const [pickupWindows, setPickupWindows] = useState<string[]>([]);
+  const [selectedDay, setSelectedDay] = useState("Today");
+  const [selectedTime, setSelectedTime] = useState("4:00 PM - 6:00 PM");
+
+  function addPickupWindow() {
+    const newWindow = `${selectedDay} ${selectedTime}`;
+
+    if (pickupWindows.includes(newWindow)) return;
+
+    setPickupWindows([...pickupWindows, newWindow]);
+  }
 
   async function createItem(event: React.FormEvent) {
     event.preventDefault();
@@ -31,6 +42,11 @@ export default function NewItemPage() {
 
     if (!userData.user) {
       setMessage("You must be signed in to create a listing.");
+      return;
+    }
+
+    if (pickupWindows.length === 0) {
+      setMessage("Please add at least one pickup window.");
       return;
     }
 
@@ -64,22 +80,14 @@ export default function NewItemPage() {
         owner_id: userData.user.id,
         status: "AVAILABLE",
         image_url: imageUrl,
-
         pickup_type: pickupType,
         public_location: publicLocation,
         private_address: pickupType === "PORCH" ? privateAddress : null,
-        pickup_instructions:
-          pickupType === "PORCH" ? pickupInstructions : null,
-        pickup_window: pickupType === "PORCH" ? pickupWindow : null,
-        meetup_location:
-          pickupType === "PUBLIC_MEETUP" ? meetupLocation : null,
+        pickup_instructions: pickupType === "PORCH" ? pickupInstructions : null,
+        pickup_window: pickupType === "PORCH" ? pickupWindows.join(", ") : null,
+        meetup_location: pickupType === "PUBLIC_MEETUP" ? meetupLocation : null,
         meetup_time_options:
-          pickupType === "PUBLIC_MEETUP"
-            ? meetupTimeOptions
-                .split("\n")
-                .map((time) => time.trim())
-                .filter(Boolean)
-            : null,
+          pickupType === "PUBLIC_MEETUP" ? pickupWindows : null,
       })
       .select("id")
       .single();
@@ -99,9 +107,10 @@ export default function NewItemPage() {
     setPublicLocation("");
     setPrivateAddress("");
     setPickupInstructions("");
-    setPickupWindow("");
     setMeetupLocation("");
-    setMeetupTimeOptions("");
+    setPickupWindows([]);
+    setSelectedDay("Today");
+    setSelectedTime("4:00 PM - 6:00 PM");
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -112,9 +121,7 @@ export default function NewItemPage() {
     <main className="min-h-screen bg-slate-100 px-6 py-10">
       <section className="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-sm">
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-4xl font-black text-slate-900">
-            Create Listing
-          </h1>
+          <h1 className="text-4xl font-black text-slate-900">Create Listing</h1>
 
           <Link href="/" className="font-semibold text-slate-600 hover:text-slate-900">
             ← Back home
@@ -153,12 +160,10 @@ export default function NewItemPage() {
             onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
           />
+          
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <h2 className="text-xl font-bold text-slate-900">Pickup Setup</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Set the pickup rules up front so you do not have to message back and forth.
-            </p>
 
             <div className="mt-4 grid gap-3">
               <label className="flex items-center gap-3 rounded-xl bg-white p-4">
@@ -213,13 +218,6 @@ export default function NewItemPage() {
                   className="w-full rounded-xl border border-slate-300 px-4 py-3"
                 />
 
-                <input
-                  value={pickupWindow}
-                  onChange={(e) => setPickupWindow(e.target.value)}
-                  placeholder="Pickup window, e.g. Today 4 PM - 8 PM"
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3"
-                />
-
                 <textarea
                   value={pickupInstructions}
                   onChange={(e) => setPickupInstructions(e.target.value)}
@@ -230,24 +228,18 @@ export default function NewItemPage() {
             )}
 
             {pickupType === "PUBLIC_MEETUP" && (
-              <div className="mt-4 space-y-4">
-                <input
-                  value={meetupLocation}
-                  onChange={(e) => setMeetupLocation(e.target.value)}
-                  placeholder="Meetup location, e.g. Ignacio Library parking lot"
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3"
-                />
-
-                <textarea
-                  value={meetupTimeOptions}
-                  onChange={(e) => setMeetupTimeOptions(e.target.value)}
-                  placeholder={
-                    "Time options, one per line\nToday 5:30 PM\nTomorrow 12:00 PM\nTomorrow 6:00 PM"
-                  }
-                  className="h-32 w-full rounded-xl border border-slate-300 px-4 py-3"
-                />
-              </div>
+              <input
+                value={meetupLocation}
+                onChange={(e) => setMeetupLocation(e.target.value)}
+                placeholder="Meetup location, e.g. Ignacio Library parking lot"
+                className="mt-4 w-full rounded-xl border border-slate-300 px-4 py-3"
+              />
             )}
+
+            <PickupWindowSelector
+  pickupWindows={pickupWindows}
+  setPickupWindows={setPickupWindows}
+/>
           </div>
 
           <button className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white hover:bg-slate-700">
@@ -255,15 +247,11 @@ export default function NewItemPage() {
           </button>
         </form>
 
-        {message && (
-          <p className="mt-5 font-semibold text-slate-700">{message}</p>
-        )}
+        {message && <p className="mt-5 font-semibold text-slate-700">{message}</p>}
 
         {createdItemId && (
           <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-5">
-            <h2 className="text-xl font-bold text-green-800">
-              Listing is live!
-            </h2>
+            <h2 className="text-xl font-bold text-green-800">Listing is live!</h2>
             <p className="mt-2 text-green-700">
               Your item has been posted and people can now request pickup.
             </p>
