@@ -86,6 +86,7 @@ export default function NewItemPage() {
         pickup_instructions: pickupType === "PORCH" ? pickupInstructions : null,
         pickup_window: pickupType === "PORCH" ? pickupWindows.join(", ") : null,
         meetup_location: pickupType === "PUBLIC_MEETUP" ? meetupLocation : null,
+        pickup_windows: pickupWindows,
         meetup_time_options:
           pickupType === "PUBLIC_MEETUP" ? pickupWindows : null,
       })

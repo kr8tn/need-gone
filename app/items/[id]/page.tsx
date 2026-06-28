@@ -74,10 +74,7 @@ export default async function ItemDetailsPage({ params }: ItemDetailsPageProps) 
 
   {item.pickup_type === "PORCH" && (
     <>
-      <p className="mt-2 text-slate-700">
-        <span className="font-semibold">Pickup window:</span>{" "}
-        {item.pickup_window || "Not specified"}
-      </p>
+      
 
       <p className="mt-3 text-sm text-slate-500">
         Exact address and instructions are only shown after the giver approves your pickup request.
