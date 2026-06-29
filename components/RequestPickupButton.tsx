@@ -11,41 +11,46 @@ type RequestPickupButtonProps = {
   };
 };
 
+type ExistingRequest = {
+  id: string;
+  status: string;
+  requested_time: string;
+};
+
 export default function RequestPickupButton({
   item,
 }: RequestPickupButtonProps) {
   const [loading, setLoading] = useState(false);
-  const [checkingApproval, setCheckingApproval] = useState(true);
-  const [hasApprovedRequest, setHasApprovedRequest] = useState(false);
+  const [checkingRequest, setCheckingRequest] = useState(true);
+  const [existingRequest, setExistingRequest] =
+    useState<ExistingRequest | null>(null);
   const [message, setMessage] = useState("");
   const [selectedWindow, setSelectedWindow] = useState("");
   const [committed, setCommitted] = useState(false);
 
-  useEffect(() => {
-    async function checkApprovedRequest() {
-      const { data: userData } = await supabase.auth.getUser();
+  async function checkExistingRequest() {
+    const { data: userData } = await supabase.auth.getUser();
 
-      if (!userData.user) {
-        setCheckingApproval(false);
-        return;
-      }
-
-      const { data } = await supabase
-        .from("pickup_requests")
-        .select("id")
-        .eq("item_id", item.id)
-        .eq("requester_id", userData.user.id)
-        .eq("status", "APPROVED")
-        .maybeSingle();
-
-      if (data) {
-        setHasApprovedRequest(true);
-      }
-
-      setCheckingApproval(false);
+    if (!userData.user) {
+      setCheckingRequest(false);
+      return;
     }
 
-    checkApprovedRequest();
+    const { data } = await supabase
+      .from("pickup_requests")
+      .select("id, status, requested_time")
+      .eq("item_id", item.id)
+      .eq("requester_id", userData.user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    setExistingRequest(data);
+    setCheckingRequest(false);
+  }
+
+  useEffect(() => {
+    checkExistingRequest();
   }, [item.id]);
 
   async function requestPickup() {
@@ -77,15 +82,52 @@ export default function RequestPickupButton({
     setMessage(
       "🎉 Pickup request sent! The giver will review your request. If approved, you’ll receive the exact pickup location and instructions."
     );
+
     setLoading(false);
+    await checkExistingRequest();
   }
 
-  if (checkingApproval) {
+  if (checkingRequest) {
     return null;
   }
 
-  if (hasApprovedRequest) {
-    return null;
+  if (existingRequest) {
+    return (
+      <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-5">
+        <h3 className="text-lg font-bold text-slate-900">
+          Your pickup request
+        </h3>
+
+        <p className="mt-3 text-slate-700">
+          <span className="font-semibold">Requested window:</span>{" "}
+          {existingRequest.requested_time}
+        </p>
+
+        {existingRequest.status === "PENDING" && (
+          <p className="mt-3 font-semibold text-yellow-700">
+            Your request is pending. The giver will review it soon.
+          </p>
+        )}
+
+        {existingRequest.status === "APPROVED" && (
+          <p className="mt-3 font-semibold text-green-700">
+            You’re approved! Pickup details are shown above.
+          </p>
+        )}
+
+        {existingRequest.status === "DECLINED" && (
+          <p className="mt-3 font-semibold text-slate-500">
+            This request was declined.
+          </p>
+        )}
+
+        {existingRequest.status === "COMPLETED" && (
+          <p className="mt-3 font-semibold text-green-700">
+            Pickup completed. Thanks for using Need Gone.
+          </p>
+        )}
+      </div>
+    );
   }
 
   return (

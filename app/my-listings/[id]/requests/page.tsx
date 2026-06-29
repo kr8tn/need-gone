@@ -110,6 +110,22 @@ async function approveRequest(requestId: string) {
   setMessage("Request approved.");
   await loadRequests();
 }
+async function declineRequest(requestId: string) {
+  setMessage("Declining request...");
+
+  const { error } = await supabase
+    .from("pickup_requests")
+    .update({ status: "DECLINED" })
+    .eq("id", requestId);
+
+  if (error) {
+    setMessage(error.message);
+    return;
+  }
+
+  setMessage("Request declined.");
+  await loadRequests();
+}
 
 async function markPickedUp(requestId: string) {
   setMessage("Marking picked up...");
@@ -209,9 +225,12 @@ async function markPickedUp(requestId: string) {
         Approve
       </button>
 
-      <button className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700">
-        Decline
-      </button>
+     <button
+  onClick={() => declineRequest(request.id)}
+  className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700"
+>
+  Decline
+</button>
     </>
   )}
 
