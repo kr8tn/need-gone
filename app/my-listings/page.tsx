@@ -102,6 +102,12 @@ export default function MyListingsPage() {
                   >
                     View
                   </Link>
+                  <Link
+  href={`/my-listings/${item.id}/requests`}
+  className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700"
+>
+  Requests
+</Link>
 
                   {item.status !== "GONE" && (
                     <button
