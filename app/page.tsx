@@ -4,9 +4,10 @@ import Link from "next/link";
 import AuthButton from "@/components/Authbutton";
 
 export default async function Home() {
-  const { data: items } = await supabase
+const { data: items } = await supabase
   .from("items")
   .select("*")
+  .eq("status", "AVAILABLE")
   .order("created_at", { ascending: false });
 
   return (

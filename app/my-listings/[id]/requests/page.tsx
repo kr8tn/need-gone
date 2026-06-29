@@ -26,37 +26,100 @@ export default function RequestsPage({
   const [requests, setRequests] = useState<Request[]>([]);
   const [message, setMessage] = useState("Loading requests...");
 
-  useEffect(() => {
-    async function loadRequests() {
-      const { id } = await params;
-      setItemId(id);
+  async function loadRequests() {
+  const { id } = await params;
+  setItemId(id);
 
-      const { data: itemData } = await supabase
-        .from("items")
-        .select("id, title")
-        .eq("id", id)
-        .single();
+  const { data: itemData } = await supabase
+    .from("items")
+    .select("id, title")
+    .eq("id", id)
+    .single();
 
-      setItem(itemData);
+  setItem(itemData);
 
-      const { data: requestData, error } = await supabase
-        .from("pickup_requests")
-        .select("*")
-        .eq("item_id", id)
-        .order("created_at", { ascending: false });
+  const { data: requestData, error } = await supabase
+    .from("pickup_requests")
+    .select("*")
+    .eq("item_id", id)
+    .order("created_at", { ascending: false });
 
-      if (error) {
-        setMessage(error.message);
-        return;
-      }
+  if (error) {
+    setMessage(error.message);
+    return;
+  }
 
-      setRequests(requestData ?? []);
-      setMessage("");
-    }
+  setRequests(requestData ?? []);
+  setMessage("");
+}
 
-    loadRequests();
-  }, [params]);
+useEffect(() => {
+  loadRequests();
+}, [params]);
+async function approveRequest(requestId: string) {
+  setMessage("Approving request...");
 
+  const { error: approveError } = await supabase
+    .from("pickup_requests")
+    .update({ status: "APPROVED" })
+    .eq("id", requestId);
+
+  if (approveError) {
+    setMessage(approveError.message);
+    return;
+  }
+
+  const { error: declineError } = await supabase
+    .from("pickup_requests")
+    .update({ status: "DECLINED" })
+    .eq("item_id", itemId)
+    .neq("id", requestId);
+
+  if (declineError) {
+    setMessage(declineError.message);
+    return;
+  }
+
+  const { error: itemError } = await supabase
+    .from("items")
+    .update({ status: "PENDING" })
+    .eq("id", itemId);
+
+  if (itemError) {
+    setMessage(itemError.message);
+    return;
+  }
+
+  setMessage("Request approved.");
+  await loadRequests();
+}
+
+async function markPickedUp(requestId: string) {
+  setMessage("Marking picked up...");
+
+  const { error: requestError } = await supabase
+    .from("pickup_requests")
+    .update({ status: "COMPLETED" })
+    .eq("id", requestId);
+
+  if (requestError) {
+    setMessage(requestError.message);
+    return;
+  }
+
+  const { error: itemError } = await supabase
+    .from("items")
+    .update({ status: "COMPLETED" })
+    .eq("id", itemId);
+
+  if (itemError) {
+    setMessage(itemError.message);
+    return;
+  }
+
+  setMessage("Item marked as picked up.");
+  await loadRequests();
+}
   return (
     <main className="min-h-screen bg-slate-100 px-6 py-10">
       <section className="mx-auto max-w-3xl">
@@ -102,14 +165,42 @@ export default function RequestsPage({
                 </p>
 
                 <div className="mt-4 flex gap-3">
-                  <button className="rounded-xl bg-slate-900 px-4 py-2 font-semibold text-white">
-                    Approve
-                  </button>
+  {request.status === "PENDING" && (
+    <>
+      <button
+        onClick={() => approveRequest(request.id)}
+        className="rounded-xl bg-slate-900 px-4 py-2 font-semibold text-white"
+      >
+        Approve
+      </button>
 
-                  <button className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700">
-                    Decline
-                  </button>
-                </div>
+      <button className="rounded-xl border border-slate-300 px-4 py-2 font-semibold text-slate-700">
+        Decline
+      </button>
+    </>
+  )}
+
+  {request.status === "APPROVED" && (
+    <button
+      onClick={() => markPickedUp(request.id)}
+      className="rounded-xl bg-green-700 px-4 py-2 font-semibold text-white hover:bg-green-800"
+    >
+      Mark Picked Up
+    </button>
+  )}
+
+  {request.status === "COMPLETED" && (
+    <p className="font-semibold text-green-700">
+      ✅ Pickup completed
+    </p>
+  )}
+
+  {request.status === "DECLINED" && (
+    <p className="font-semibold text-slate-500">
+      Request declined
+    </p>
+  )}
+</div>
               </article>
             ))}
           </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import RequestPickupButton from "@/components/RequestPickupButton";
+import ApprovedPickupDetails from "@/components/ApprovedPickupDetails";
 
 type ItemDetailsPageProps = {
   params: Promise<{
@@ -76,9 +77,7 @@ export default async function ItemDetailsPage({ params }: ItemDetailsPageProps) 
     <>
       
 
-      <p className="mt-3 text-sm text-slate-500">
-        Exact address and instructions are only shown after the giver approves your pickup request.
-      </p>
+     <ApprovedPickupDetails item={item} />
     </>
   )}
 
