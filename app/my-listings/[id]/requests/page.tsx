@@ -9,6 +9,12 @@ type Request = {
   requested_time: string;
   status: string;
   requester_id: string;
+  profiles: {
+    display_name: string | null;
+    city: string | null;
+    state: string | null;
+    created_at: string | null;
+  } | null;
 };
 
 type Item = {
@@ -39,10 +45,21 @@ export default function RequestsPage({
   setItem(itemData);
 
   const { data: requestData, error } = await supabase
-    .from("pickup_requests")
-    .select("*")
-    .eq("item_id", id)
-    .order("created_at", { ascending: false });
+  .from("pickup_requests")
+  .select(`
+    id,
+    requested_time,
+    status,
+    requester_id,
+   profiles!pickup_requests_requester_profile_fkey (
+  display_name,
+  city,
+  state,
+  created_at
+)
+  `)
+  .eq("item_id", id)
+  .order("created_at", { ascending: false });
 
   if (error) {
     setMessage(error.message);
@@ -160,9 +177,27 @@ async function markPickedUp(requestId: string) {
                   Status: {request.status}
                 </p>
 
-                <p className="mt-2 text-xs text-slate-500">
-                  Requester ID: {request.requester_id}
-                </p>
+                <div className="mt-4 rounded-xl bg-white p-4">
+  <p className="font-bold text-slate-900">
+    👤 {request.profiles?.display_name || "Need Gone User"}
+  </p>
+
+  <p className="mt-1 text-sm text-slate-600">
+    📍{" "}
+    {request.profiles?.city || request.profiles?.state
+      ? `${request.profiles?.city || "Unknown city"}, ${
+          request.profiles?.state || "Unknown state"
+        }`
+      : "Location not added yet"}
+  </p>
+
+  <p className="mt-1 text-xs text-slate-500">
+    Member since{" "}
+    {request.profiles?.created_at
+      ? new Date(request.profiles.created_at).toLocaleDateString()
+      : "recently"}
+  </p>
+</div>
 
                 <div className="mt-4 flex gap-3">
   {request.status === "PENDING" && (

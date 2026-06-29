@@ -1,17 +1,25 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { ensureProfile } from "@/lib/profile";
 import type { User } from "@supabase/supabase-js";
 
 export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-    });
-  }, []);
+ useEffect(() => {
+  async function loadUser() {
+    const { data } = await supabase.auth.getUser();
+
+    setUser(data.user);
+
+    if (data.user) {
+      await ensureProfile();
+    }
+  }
+
+  loadUser();
+}, []);
 
   async function signInWithGoogle() {
     await supabase.auth.signInWithOAuth({
@@ -29,10 +37,10 @@ export default function AuthButton() {
 
   if (user) {
     return (
-      <div className="flex items-center gap-3">
-        <span className="font-semibold text-slate-700">
-          Signed in as {user.email}
-        </span>
+      <div className="flex items-center gap-2">
+       <span className="hidden font-semibold text-slate-700 lg:inline">
+  {user.email}
+</span>
 
         <button
           onClick={signOut}

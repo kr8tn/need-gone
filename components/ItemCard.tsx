@@ -6,30 +6,49 @@ type ItemCardProps = {
 };
 
 export default function ItemCard({ item }: ItemCardProps) {
+  const statusConfig = {
+    AVAILABLE: {
+      label: "AVAILABLE",
+      buttonText: "Request Pickup",
+      buttonClassName:
+        "mt-5 block w-full rounded-xl bg-slate-900 px-4 py-3 text-center font-bold text-white hover:bg-slate-700",
+      badgeClassName:
+        "rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700",
+    },
+    PENDING: {
+      label: "PENDING",
+      buttonText: "Pickup Pending",
+      buttonClassName:
+        "mt-5 block w-full rounded-xl bg-yellow-100 px-4 py-3 text-center font-bold text-yellow-800",
+      badgeClassName:
+        "rounded-full bg-yellow-100 px-3 py-1 text-sm font-semibold text-yellow-700",
+    },
+    COMPLETED: {
+      label: "GONE",
+      buttonText: "Picked Up",
+      buttonClassName:
+        "mt-5 block w-full rounded-xl bg-slate-100 px-4 py-3 text-center font-bold text-slate-500",
+      badgeClassName:
+        "rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700",
+    },
+    GONE: {
+      label: "GONE",
+      buttonText: "Gone",
+      buttonClassName:
+        "mt-5 block w-full rounded-xl bg-slate-100 px-4 py-3 text-center font-bold text-slate-500",
+      badgeClassName:
+        "rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700",
+    },
+  };
 
-const statusConfig = {
-  AVAILABLE: {
-    buttonText: "Request Pickup",
-    buttonDisabled: false,
-    statusBadgeClassName: "rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700",
-  },
-  PENDING: {
-    buttonText: "Join Backup Queue",
-    buttonDisabled: false,
-    statusBadgeClassName: "rounded-full bg-yellow-100 px-3 py-1 text-sm font-semibold text-yellow-700",
-  },
-  GONE: {
-    buttonText: "Gone",
-    buttonDisabled: true,
-    statusBadgeClassName: "rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700",
-  },
-};
+  const config =
+    statusConfig[item.status as keyof typeof statusConfig] ??
+    statusConfig.AVAILABLE;
 
-  let buttonText = statusConfig[item.status].buttonText;
-  let buttonDisabled = statusConfig[item.status].buttonDisabled;
-  let statusBadgeClassName = statusConfig[item.status].statusBadgeClassName;
- 
- 
+  const pickupSummary =
+    item.pickup_windows && item.pickup_windows.length > 0
+      ? item.pickup_windows[0]
+      : item.pickup_window || "Pickup window not set";
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -39,14 +58,14 @@ const statusConfig = {
         </span>
 
         {item.image_url ? (
-  <img
-    src={item.image_url}
-    alt={item.title}
-    className="mb-4 h-48 w-full rounded-xl object-cover"
-  />
-) : (
-  <div className="mb-4 h-48 rounded-xl bg-slate-200" />
-)}
+          <img
+            src={item.image_url}
+            alt={item.title}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="h-full w-full bg-slate-200" />
+        )}
       </div>
 
       <div className="flex items-start justify-between gap-4">
@@ -55,34 +74,33 @@ const statusConfig = {
           <p className="mt-2 text-slate-600">{item.description}</p>
         </div>
 
-        <span className={statusBadgeClassName}>{item.status}</span>
+        <span className={config.badgeClassName}>{config.label}</span>
       </div>
 
-   <div className="mt-4 space-y-1 text-sm text-slate-600">
-  <p>
-    📍 {item.public_location || item.location}
-  </p>
+      <div className="mt-4 space-y-1 text-sm text-slate-600">
+        <p>📍 {item.public_location || item.location}</p>
 
-  {item.pickup_type === "PORCH" && (
-    <p>
-      🏡 {item.pickup_window || "Pickup window not set"}
-    </p>
-  )}
+        {item.pickup_type === "PORCH" && <p>🏡 {pickupSummary}</p>}
 
-  {item.pickup_type === "PUBLIC_MEETUP" && (
-    <p>
-      🤝 Public meetup
-    </p>
-  )}
-</div>
+        {item.pickup_type === "PUBLIC_MEETUP" && (
+          <p>🤝 Public meetup • {pickupSummary}</p>
+        )}
+      </div>
 
-     <button
-  disabled={buttonDisabled}
-  className="mt-5 w-full rounded-xl bg-slate-900 px-4 py-3 font-bold text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
->
-  {buttonText}
-</button>
-<Link href={`/items/${item.id}`}>View Details →</Link>
+      {item.status === "AVAILABLE" ? (
+        <Link href={`/items/${item.id}`} className={config.buttonClassName}>
+          {config.buttonText}
+        </Link>
+      ) : (
+        <div className={config.buttonClassName}>{config.buttonText}</div>
+      )}
+
+      <Link
+        href={`/items/${item.id}`}
+        className="mt-3 inline-block font-semibold text-slate-700 hover:text-slate-900"
+      >
+        View Details →
+      </Link>
     </article>
   );
 }

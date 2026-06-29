@@ -1,14 +1,12 @@
 import ItemCard from "@/components/ItemCard";
 import { supabase } from "@/lib/supabase";
-import Link from "next/link";
-import AuthButton from "@/components/Authbutton";
 
 export default async function Home() {
-const { data: items } = await supabase
-  .from("items")
-  .select("*")
-  .eq("status", "AVAILABLE")
-  .order("created_at", { ascending: false });
+  const { data: items } = await supabase
+    .from("items")
+    .select("*")
+    .eq("status", "AVAILABLE")
+    .order("created_at", { ascending: false });
 
   return (
     <main className="min-h-screen bg-slate-100 px-6 py-10">
@@ -23,15 +21,6 @@ const { data: items } = await supabase
             <br />
             A simple way to give away useful stuff locally.
           </p>
-
-          <Link
-            href="/items/new"
-            className="mt-8 inline-block rounded-xl bg-slate-900 px-8 py-4 text-lg font-bold text-white hover:bg-slate-700"
-          >
-            + Create Listing
-          </Link>
-          <AuthButton />
-          <Link href="/my-listings">My Listings</Link>
         </div>
 
         <div className="mb-10">
@@ -55,8 +44,8 @@ const { data: items } = await supabase
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {items?.map((item) => (
-  <ItemCard key={item.id} item={item} />
-))}
+            <ItemCard key={item.id} item={item} />
+          ))}
         </div>
       </section>
     </main>
