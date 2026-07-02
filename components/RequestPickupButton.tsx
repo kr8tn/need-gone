@@ -72,12 +72,19 @@ export default function RequestPickupButton({
       requested_time: selectedWindow,
       status: "PENDING",
     });
+  
 
     if (error) {
       setMessage(error.message);
       setLoading(false);
       return;
     }
+
+        await supabase.from("notifications").insert({
+      user_id: item.owner_id,
+      title: "New Pickup Request",
+      message: "Someone requested one of your listings.",
+    });
 
     setMessage(
       "🎉 Pickup request sent! The giver will review your request. If approved, you’ll receive the exact pickup location and instructions."

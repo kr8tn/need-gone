@@ -82,3 +82,16 @@ Possible behavior:
 - Sort by Distance.
 - Save searches.
 - Notify next person in line when a pickup falls through.
+
+
+### Community Impact / Trust Stats
+
+Future idea: make Need Gone feel like a community, not just a marketplace.
+
+Possible stats:
+- Items kept out of the landfill
+- Neighbors helped
+- Successful pickups
+- Pickup reliability percentage
+- Member since date
+- Giving streaks

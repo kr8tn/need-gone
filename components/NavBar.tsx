@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AuthButton from "@/components/Authbutton";
+import NotificationLink from "@/components/NotificationLink";
 
 export default function NavBar() {
   return (
@@ -11,7 +12,7 @@ export default function NavBar() {
   href="/"
   className="whitespace-nowrap text-3xl font-black tracking-tight text-slate-900 hover:text-slate-700"
 >
-  Need Gone
+  need gone
 </Link>
 
         {/* Navigation */}
@@ -38,7 +39,7 @@ export default function NavBar() {
           >
             My Requests
           </Link>
-
+          <NotificationLink />
           <Link
             href="/profile"
             className="rounded-lg px-2 py-1 font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300"
